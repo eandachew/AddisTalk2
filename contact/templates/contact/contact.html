@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Page Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-5 fw-bold text-primary">
+                    <i class="bi bi-envelope-heart me-2"></i>Contact Us
+                </h1>
+                <p class="lead text-muted">
+                    Have questions or feedback? We'd love to hear from you!
+                </p>
+            </div>
+
+            <!-- Messages Display -->
+            {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <div class="d-flex align-items-center">
+                        {% if message.tags == 'success' %}
+                            <i class="bi bi-check-circle-fill me-3 fs-5"></i>
+                        {% elif message.tags == 'error' or message.tags == 'danger' %}
+                            <i class="bi bi-exclamation-triangle-fill me-3 fs-5"></i>
+                        {% elif message.tags == 'warning' %}
+                            <i class="bi bi-exclamation-circle-fill me-3 fs-5"></i>
+                        {% elif message.tags == 'info' %}
+                            <i class="bi bi-info-circle-fill me-3 fs-5"></i>
+                        {% else %}
+                            <i class="bi bi-info-circle me-3 fs-5"></i>
+                        {% endif %}
+                        <div class="flex-grow-1">
+                            {{ message|safe }}
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Contact Form Card -->
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <form method="POST" id="contactForm">
+                        {% csrf_token %}
+                        
+                        <!-- Display form errors if any -->
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <strong>Please correct the errors below:</strong>
+                            {{ form.errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Manual form rendering for better control -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="id_name" class="form-label">
+                                    <i class="bi bi-person me-1"></i>Your Name *
+                                </label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                <div class="text-danger small">{{ form.name.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="id_email" class="form-label">
+                                    <i class="bi bi-envelope me-1"></i>Email Address *
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                <div class="text-danger small">{{ form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_subject" class="form-label">
+                                <i class="bi bi-tag me-1"></i>Subject
+                            </label>
+                            {{ form.subject }}
+                            {% if form.subject.errors %}
+                            <div class="text-danger small">{{ form.subject.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="id_message" class="form-label">
+                                <i class="bi bi-chat-text me-1"></i>Your Message *
+                            </label>
+                            {{ form.message }}
+                            {% if form.message.errors %}
+                            <div class="text-danger small">{{ form.message.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">
+                                Please provide as much detail as possible.
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-send me-2"></i>Send Message
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Back to Home -->
+            <div class="text-center mt-4">
+                <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extras %}
+<script>
+// Add Bootstrap classes to form fields
+document.addEventListener('DOMContentLoaded', function() {
+    // Get all form inputs
+    const inputs = document.querySelectorAll('#contactForm input, #contactForm textarea, #contactForm select');
+    
+    inputs.forEach(input => {
+        // Add Bootstrap form-control class
+        if (input.type !== 'checkbox' && input.type !== 'radio') {
+            input.classList.add('form-control');
+        }
+        
+        // Add Bootstrap form-control-lg for larger inputs
+        if (input.id === 'id_name' || input.id === 'id_email' || input.id === 'id_subject') {
+            input.classList.add('form-control-lg');
+        }
+        
+        // Set placeholders if not already set
+        if (!input.placeholder) {
+            switch(input.id) {
+                case 'id_name':
+                    input.placeholder = 'Enter your name';
+                    break;
+                case 'id_email':
+                    input.placeholder = 'Enter your email';
+                    break;
+                case 'id_subject':
+                    input.placeholder = 'Subject (optional)';
+                    break;
+            }
+        }
+    });
+    
+    // Style textarea specifically
+    const textarea = document.getElementById('id_message');
+    if (textarea) {
+        textarea.classList.add('form-control');
+        textarea.rows = 6;
+        if (!textarea.placeholder) {
+            textarea.placeholder = 'Write your message here...';
+        }
+    }
+});
+</script>
+{% endblock %}

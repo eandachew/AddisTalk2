@@ -1,132 +1,251 @@
-
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
-{% load crispy_forms_tags %}
 
 {% block content %}
-<div class="masthead">
-    <div class="container">
-        <div class="row g-0">
-            <div class="col-md-12 masthead-text">
-                <h1 class="post-title">{{ post.title }}</h1>
-                <p class="post-subtitle">{{ post.author }} | {{ post.created_on }}</p>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Back to Home -->
+            <div class="mb-4">
+                <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Back to All Posts
+                </a>
             </div>
-        </div>
-    </div>
-</div>
 
-<div class="container">
-    <div class="row">
-        <div class="col card mb-4 mt-3 left top">
-            <div class="card-body">
-                <p class="card-text">
-                    {{ post.content | safe }}
-                </p>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Displaying count of comments -->
-    <div class="row">
-        <div class="col-12">
-            <strong class="text-secondary">
-                <i class="far fa-comments"></i> {{ comment_count }}
-            </strong>
-        </div>
-        <div class="col-12">
-            <hr>
-        </div>
-    </div>
-    
-    <!-- Displaying Comments -->
-    <div class="row">
-        <div class="col-md-8 card mb-4 mt-3">
-            <h3>Comments:</h3>
-            <div class="card-body">
-                {% for comment in comments %}
-                <div class="p-2 comments 
-                    {% if not comment.approved and comment.author == user %}
-                    faded{% elif not comment.approved %} d-none{% endif %}">
-                    <p class="font-weight-bold">
-                        {{ comment.author }}
-                        <span class="font-weight-normal">
-                            {{ comment.created_on }}
-                        </span> wrote:
-                    </p>
-                    <div id="comment{{ comment.id }}">
-                        {{ comment.body | linebreaks }}
-                    </div>
-                    {% if not comment.approved and comment.author == user %}
-                    <p class="approval">
-                        This comment is awaiting approval
-                    </p>
-                    {% endif %}
+            <!-- Post Content -->
+            <article class="card shadow-sm mb-5">
+                <div class="card-body p-4">
+                    <!-- Post Title -->
+                    <h1 class="card-title display-5 fw-bold mb-3">{{ post.title }}</h1>
                     
-                    <!-- Edit/Delete buttons for comment author -->
-                    {% if user.is_authenticated and comment.author == user %}
-                    <div class="comment-actions mt-2">
-                        <button class="btn btn-danger btn-delete" comment_id="{{ comment.id }}">Delete</button>
-                        <button class="btn btn-secondary btn-edit" comment_id="{{ comment.id }}">Edit</button>
+                    <!-- Post Meta Information -->
+                    <div class="post-meta text-muted mb-4 pb-3 border-bottom">
+                        <div class="d-flex flex-wrap align-items-center gap-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-person-circle me-2"></i>
+                                <span class="fw-medium">{{ post.author.username }}</span>
+                            </div>
+                            
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-calendar me-2"></i>
+                                <time datetime="{{ post.created_on|date:'Y-m-d' }}">
+                                    {{ post.created_on|date:"F d, Y" }}
+                                </time>
+                            </div>
+                            
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-chat-left-text me-2"></i>
+                                <span>{{ comments.count }} comment{{ comments.count|pluralize }}</span>
+                            </div>
+                            
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    {{ post.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    {% endif %}
                     
-                    <!-- Admin actions -->
-                    {% if user.is_superuser %}
-                    <div class="comment-admin mt-2">
-                        <small>
-                            {% if not comment.approved %}
-                            <a href="#" class="text-success me-3" onclick="approveComment({{ comment.id }})">Approve</a>
-                            {% endif %}
-                            <a href="#" class="text-danger" onclick="deleteComment({{ comment.id }})">Delete</a>
-                        </small>
+                    <!-- Post Body -->
+                    <div class="post-content mb-4">
+                        <div class="content-wrapper">
+                            {{ post.content|linebreaks }}
+                        </div>
                     </div>
+                    
+                    <!-- Post Footer -->
+                    <div class="border-top pt-3 text-muted small">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <i class="bi bi-clock-history me-1"></i>
+                                Posted {{ post.created_on|timesince }} ago
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Comments Section -->
+            <section class="comments-section">
+                <h2 class="h3 mb-4">
+                    <i class="bi bi-chat-left-text me-2"></i>
+                    Comments
+                    <span class="badge bg-secondary ms-2">{{ comments.count }}</span>
+                </h2>
+
+                <!-- Comment Form (for User Story #4) -->
+                {% if user.is_authenticated %}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i class="bi bi-pencil-square me-2"></i>Leave a Comment
+                        </h5>
+                        <form method="POST" action="{% url 'add_comment' post.slug %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <textarea name="body" 
+                                          class="form-control" 
+                                          rows="4" 
+                                          placeholder="Write your comment here..."
+                                          required></textarea>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Your comment will be visible after admin approval.
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-send me-2"></i>Submit Comment
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <div class="alert alert-info mb-4">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-info-circle fs-5 me-3"></i>
+                        <div>
+                            <strong>Want to join the discussion?</strong>
+                            <p class="mb-0">
+                                Please <a href="{% url 'account_login' %}" class="alert-link">login</a> 
+                                or <a href="{% url 'account_signup' %}" class="alert-link">register</a> 
+                                to leave a comment.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Comments List -->
+                {% if comments %}
+                <div class="comments-list">
+                    {% for comment in comments %}
+                    <div class="card mb-3 {% if comment.author == user %}border-primary{% endif %}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <!-- Comment Header -->
+                                <div class="d-flex align-items-center">
+                                    <div class="user-avatar me-3">
+                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                             style="width: 40px; height: 40px;">
+                                            {{ comment.author.username|slice:":1"|upper }}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ comment.author.username }}</h6>
+                                        <small class="text-muted">
+                                            <i class="bi bi-clock me-1"></i>
+                                            {{ comment.created_on|timesince }} ago
+                                        </small>
+                                    </div>
+                                </div>
+                                
+                                <!-- Comment Actions (for User Story #6) -->
+                                {% if comment.author == user %}
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                            type="button" 
+                                            data-bs-toggle="dropdown"
+                                            aria-expanded="false">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'comment_edit' post.slug comment.id %}">
+                                                <i class="bi bi-pencil me-2"></i>Edit
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <button type="button" 
+                                                    class="dropdown-item text-danger" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteComment{{ comment.id }}">
+                                                <i class="bi bi-trash me-2"></i>Delete
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                                
+                                <!-- Delete Modal -->
+                                <div class="modal fade" id="deleteComment{{ comment.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirm Delete</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Are you sure you want to delete your comment?</p>
+                                                <div class="alert alert-warning">
+                                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                                    This action cannot be undone.
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                    Cancel
+                                                </button>
+                                                <form method="POST" action="{% url 'comment_delete' post.slug comment.id %}">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger">
+                                                        <i class="bi bi-trash me-2"></i>Delete Comment
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Comment Body -->
+                            <div class="comment-body mt-3">
+                                <p class="mb-0">{{ comment.body|linebreaks }}</p>
+                            </div>
+                            
+                            <!-- Comment Approval Status -->
+                            <div class="comment-footer mt-3 pt-2 border-top">
+                                {% if comment.approved %}
+                                <small class="text-success">
+                                    <i class="bi bi-check-circle me-1"></i>Approved
+                                </small>
+                                {% else %}
+                                <small class="text-warning">
+                                    <i class="bi bi-clock me-1"></i>Awaiting approval
+                                </small>
+                                {% endif %}
+                                
+                                {% if user == comment.author and not comment.approved %}
+                                <small class="text-muted ms-3">
+                                    <i class="bi bi-info-circle me-1"></i>Only you can see this until approved
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% else %}
+                <!-- No Comments Message -->
+                <div class="text-center py-5">
+                    <i class="bi bi-chat-square-text display-1 text-muted mb-4"></i>
+                    <h3 class="h4 mb-3">No Comments Yet</h3>
+                    <p class="text-muted mb-4">
+                        Be the first to share your thoughts on this post!
+                    </p>
+                    {% if not user.is_authenticated %}
+                    <a href="{% url 'account_login' %}" class="btn btn-primary">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login to Comment
+                    </a>
                     {% endif %}
                 </div>
-                {% endfor %}
-            </div>
-        </div>
-        
-        <!-- Creating New Comments -->
-        <div class="col-md-4 card mb-4 mt-3">
-            <div class="card-body">
-                {% if user.is_authenticated %}
-                <h3>Leave a comment:</h3>
-                <p>Posting as: {{ user.username }}</p>
-                <form id="commentForm" method="post" style="margin-top: 1.3em;">
-                    {{ comment_form | crispy }}
-                    {% csrf_token %}
-                    <button id="submitButton" type="submit" class="btn btn-signup btn-lg">Submit</button>
-                </form>
-                {% else %}
-                <p>Log in to leave a comment</p>
                 {% endif %}
-            </div>
+            </section>
         </div>
     </div>
 </div>
-
-<!-- Delete confirmation modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Delete comment?</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to delete your comment?
-                This action cannot be undone.
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <a id="deleteConfirm" href="#" class="btn btn-danger">Delete</a>
-            </div>
-        </div>
-    </div>
-</div>
-
-{% endblock content %}
-
-{% block extras %}
-<script src="{% static 'js/comments.js' %}"></script>
 {% endblock %}

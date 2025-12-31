@@ -1,9 +1,4 @@
 {% load static %}
-{% url 'home' as home_url %}
-{% url 'account_login' as login_url %}
-{% url 'account_signup' as signup_url %}
-{% url 'account_logout' as logout_url %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -35,17 +30,17 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">
+                        <a class="nav-link {% if request.path == home_url %}active{% endif %}" href="{% url 'home' %}">
                             <i class="bi bi-house-door me-1"></i>Home
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/about/' %}active{% endif %}" href="{% url 'about' %}">
+                        <a class="nav-link {% if request.path == about_url %}active{% endif %}" href="{% url 'about' %}">
                             <i class="bi bi-info-circle me-1"></i>About
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/contact/' %}active{% endif %}" href="{% url 'contact' %}">
+                        <a class="nav-link {% if request.path == contact_url %}active{% endif %}" href="{% url 'contact' %}">
                             <i class="bi bi-envelope me-1"></i>Contact
                         </a>
                     </li>
