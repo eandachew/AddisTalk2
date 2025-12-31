@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head_title %}{% trans "Sign Up" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Back to Home -->
+            <div class="mb-4">
+                <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> {% trans "Back to Home" %}
+                </a>
+            </div>
+
+            <!-- Sign Up Card -->
+            <div class="card shadow-lg">
+                <div class="card-body p-4 p-md-5">
+                    <!-- Header -->
+                    <div class="text-center mb-5">
+                        <div class="mb-4">
+                            <i class="bi bi-person-plus-fill display-1 text-primary"></i>
+                        </div>
+                        <h1 class="display-6 fw-bold text-primary">
+                            {% trans "Join AddisTalk" %}
+                        </h1>
+                        <p class="lead text-muted">
+                            {% trans "Become part of our community" %}
+                        </p>
+                    </div>
+
+                    <!-- Already have account -->
+                    <div class="alert alert-info mb-5">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-info-circle-fill fs-5 me-3"></i>
+                            <div>
+                                {% blocktrans %}
+                                Already have an account? Then please 
+                                <a href="{{ login_url }}" class="alert-link">sign in</a>.
+                                {% endblocktrans %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sign Up Form -->
+                    <div class="card border-0 bg-light">
+                        <div class="card-body p-4">
+                            <h3 class="card-title text-center mb-4">
+                                <i class="bi bi-person-plus me-2"></i>
+                                {% trans "Create Account" %}
+                            </h3>
+                            
+                            <form class="signup" method="POST" action="{% url 'account_signup' %}">
+                                {% csrf_token %}
+                                
+                                <!-- Username Field -->
+                                <div class="mb-4">
+                                    <label for="id_username" class="form-label">
+                                        <i class="bi bi-person-badge me-1"></i>
+                                        {% trans "Username" %} *
+                                    </label>
+                                    <input type="text" 
+                                           name="username" 
+                                           id="id_username" 
+                                           class="form-control form-control-lg"
+                                           placeholder="{% trans 'Choose a username' %}"
+                                           required
+                                           autofocus
+                                           autocomplete="username">
+                                    <div class="form-text">
+                                        {% trans "150 characters or fewer. Letters, digits and @/./+/-/_ only." %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Email Field -->
+                                <div class="mb-4">
+                                    <label for="id_email" class="form-label">
+                                        <i class="bi bi-envelope me-1"></i>
+                                        {% trans "Email Address" %} *
+                                    </label>
+                                    <input type="email" 
+                                           name="email" 
+                                           id="id_email" 
+                                           class="form-control form-control-lg"
+                                           placeholder="{% trans 'Enter your email' %}"
+                                           required
+                                           autocomplete="email">
+                                </div>
+                                
+                                <!-- Password Field -->
+                                <div class="mb-4">
+                                    <label for="id_password1" class="form-label">
+                                        <i class="bi bi-lock me-1"></i>
+                                        {% trans "Password" %} *
+                                    </label>
+                                    <input type="password" 
+                                           name="password1" 
+                                           id="id_password1" 
+                                           class="form-control form-control-lg"
+                                           placeholder="{% trans 'Create a password' %}"
+                                           required
+                                           autocomplete="new-password">
+                                    <div class="form-text">
+                                        {% trans "Use a strong password with at least 8 characters." %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Confirm Password Field -->
+                                <div class="mb-4">
+                                    <label for="id_password2" class="form-label">
+                                        <i class="bi bi-lock-fill me-1"></i>
+                                        {% trans "Confirm Password" %} *
+                                    </label>
+                                    <input type="password" 
+                                           name="password2" 
+                                           id="id_password2" 
+                                           class="form-control form-control-lg"
+                                           placeholder="{% trans 'Confirm your password' %}"
+                                           required
+                                           autocomplete="new-password">
+                                </div>
+                                
+                                <!-- Hidden redirect field -->
+                                {% if redirect_field_value %}
+                                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+                                {% endif %}
+                                
+                                <!-- Submit Button -->
+                                <div class="d-grid mb-4">
+                                    <button class="btn btn-primary btn-lg" type="submit">
+                                        <i class="bi bi-person-plus me-2"></i>
+                                        {% trans "Sign Up" %}
+                                    </button>
+                                </div>
+                                
+                                <!-- Login Link -->
+                                <div class="text-center">
+                                    <p class="text-muted mb-0">
+                                        {% trans "Already have an account?" %}
+                                        <a href="{% url 'account_login' %}" class="text-decoration-none fw-bold">
+                                            {% trans "Login here" %}
+                                        </a>
+                                    </p>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Terms and Privacy -->
+                    <div class="mt-5 pt-4 border-top">
+                        <div class="alert alert-light">
+                            <p class="small text-muted mb-0 text-center">
+                                <i class="bi bi-shield-lock me-1"></i>
+                                {% trans "By signing up, you agree to our" %}
+                                <a href="#" class="text-decoration-none">{% trans "Terms of Service" %}</a>
+                                {% trans "and" %}
+                                <a href="#" class="text-decoration-none">{% trans "Privacy Policy" %}</a>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Back to Home Bottom -->
+            <div class="text-center mt-4">
+                <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-house-door me-2"></i>
+                    {% trans "Return to Homepage" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
