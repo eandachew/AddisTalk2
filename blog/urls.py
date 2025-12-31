@@ -7,4 +7,5 @@ urlpatterns = [
     path('post/<slug:slug>/comment/', views.add_comment, name='add_comment'),
     path('post/<slug:slug>/edit/<int:comment_id>/', views.comment_edit, name='comment_edit'),
     path('post/<slug:slug>/delete/<int:comment_id>/', views.comment_delete, name='comment_delete'),
+    path('post/<slug:slug>/like/', views.post_like, name='post_like'),
 ]

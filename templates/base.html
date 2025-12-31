@@ -145,6 +145,69 @@
     
     <!-- Custom JavaScript Block -->
     {% block extras %}
-    {% endblock %}
+<script>
+// Like functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const likeForm = document.getElementById('like-form');
+    
+    if (likeForm) {
+        likeForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const likeBtn = likeForm.querySelector('button');
+            const likeIcon = likeBtn.querySelector('i');
+            const likeCount = document.getElementById('like-count');
+            const likeText = document.getElementById('like-text');
+            
+            // Disable button during request
+            likeBtn.disabled = true;
+            
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(new FormData(this))
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update button appearance
+                if (data.liked) {
+                    likeBtn.classList.remove('btn-outline-danger');
+                    likeBtn.classList.add('btn-danger');
+                    likeIcon.classList.remove('bi-heart');
+                    likeIcon.classList.add('bi-heart-fill');
+                } else {
+                    likeBtn.classList.remove('btn-danger');
+                    likeBtn.classList.add('btn-outline-danger');
+                    likeIcon.classList.remove('bi-heart-fill');
+                    likeIcon.classList.add('bi-heart');
+                }
+                
+                // Update like count
+                likeCount.textContent = data.like_count;
+                
+                // Update like text
+                if (data.like_count === 0) {
+                    likeText.textContent = 'Be the first to like this!';
+                } else if (data.like_count === 1) {
+                    likeText.textContent = '1 person likes this';
+                } else {
+                    likeText.textContent = `${data.like_count} people like this`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Something went wrong. Please try again.');
+            })
+            .finally(() => {
+                likeBtn.disabled = false;
+            });
+        });
+    }
+});
+</script>
+{% endblock %}
 </body>
 </html>

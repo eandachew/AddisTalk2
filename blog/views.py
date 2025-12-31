@@ -2,6 +2,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views import generic
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 from .models import Post, Comment
 
 
@@ -25,10 +27,16 @@ def post_detail(request, slug):
     # Get approved comments for this post
     comments = post.comments.filter(approved=True)
     
+    # Check if current user has liked the post
+    user_has_liked = False
+    if request.user.is_authenticated:
+        user_has_liked = post.likes.filter(id=request.user.id).exists()
+    
     # Prepare context to pass to template
     context = {
         'post': post,
         'comments': comments,
+        'user_has_liked': user_has_liked,
     }
     
     return render(request, 'blog/post_detail.html', context)
@@ -110,3 +118,24 @@ def comment_delete(request, slug, comment_id):
     comment.delete()
     messages.success(request, 'Comment deleted successfully.')
     return redirect('post_detail', slug=slug)
+
+
+@login_required
+@require_POST
+def post_like(request, slug):
+    """
+    View to handle post likes.
+    """
+    post = get_object_or_404(Post, slug=slug, status=1)
+    
+    if post.likes.filter(id=request.user.id).exists():
+        post.likes.remove(request.user)
+        liked = False
+    else:
+        post.likes.add(request.user)
+        liked = True
+    
+    return JsonResponse({
+        'liked': liked,
+        'like_count': post.likes.count()
+    })

@@ -54,6 +54,39 @@
                         </div>
                     </div>
                     
+                    <!-- Like Section -->
+                    <div class="like-section mb-4">
+                        <div class="d-flex align-items-center">
+                            {% if user.is_authenticated %}
+                            <form method="POST" action="{% url 'post_like' post.slug %}" 
+                                  id="like-form" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-like {% if user_has_liked %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                                    <i class="bi bi-heart{% if user_has_liked %}-fill{% endif %}"></i>
+                                    <span id="like-count">{{ post.likes.count }}</span>
+                                </button>
+                            </form>
+                            {% else %}
+                            <a href="{% url 'account_login' %}" class="btn btn-outline-danger">
+                                <i class="bi bi-heart"></i>
+                                <span id="like-count">{{ post.likes.count }}</span>
+                            </a>
+                            {% endif %}
+                            
+                            <div class="ms-3 text-muted">
+                                <small id="like-text">
+                                    {% if post.likes.count == 0 %}
+                                        Be the first to like this!
+                                    {% elif post.likes.count == 1 %}
+                                        1 person likes this
+                                    {% else %}
+                                        {{ post.likes.count }} people like this
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Post Footer -->
                     <div class="border-top pt-3 text-muted small">
                         <div class="d-flex justify-content-between">
@@ -74,7 +107,7 @@
                     <span class="badge bg-secondary ms-2">{{ comments.count }}</span>
                 </h2>
 
-                <!-- Comment Form (for User Story #4) -->
+                <!-- Comment Form -->
                 {% if user.is_authenticated %}
                 <div class="card mb-4 shadow-sm">
                     <div class="card-body">
@@ -142,7 +175,7 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Comment Actions (for User Story #6) -->
+                                <!-- Comment Actions -->
                                 {% if comment.author == user %}
                                 <div class="dropdown">
                                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
@@ -248,4 +281,70 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extras %}
+<script>
+// Like functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const likeForm = document.getElementById('like-form');
+    
+    if (likeForm) {
+        likeForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const likeBtn = likeForm.querySelector('button');
+            const likeIcon = likeBtn.querySelector('i');
+            const likeCount = document.getElementById('like-count');
+            const likeText = document.getElementById('like-text');
+            
+            // Disable button during request
+            likeBtn.disabled = true;
+            
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(new FormData(this))
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update button appearance
+                if (data.liked) {
+                    likeBtn.classList.remove('btn-outline-danger');
+                    likeBtn.classList.add('btn-danger');
+                    likeIcon.classList.remove('bi-heart');
+                    likeIcon.classList.add('bi-heart-fill');
+                } else {
+                    likeBtn.classList.remove('btn-danger');
+                    likeBtn.classList.add('btn-outline-danger');
+                    likeIcon.classList.remove('bi-heart-fill');
+                    likeIcon.classList.add('bi-heart');
+                }
+                
+                // Update like count
+                likeCount.textContent = data.like_count;
+                
+                // Update like text
+                if (data.like_count === 0) {
+                    likeText.textContent = 'Be the first to like this!';
+                } else if (data.like_count === 1) {
+                    likeText.textContent = '1 person likes this';
+                } else {
+                    likeText.textContent = `${data.like_count} people like this`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Something went wrong. Please try again.');
+            })
+            .finally(() => {
+                likeBtn.disabled = false;
+            });
+        });
+    }
+});
+</script>
 {% endblock %}
